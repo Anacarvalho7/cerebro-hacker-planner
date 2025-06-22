@@ -1,14 +1,3 @@
-Com certeza. Aqui está o seu código `javascript.js` completo com a correção que fizemos.
-
-A única alteração foi na função `initializeFirebase`, dentro do bloco `catch (error)`, para que o pop-up de erro mostre a mensagem detalhada que o Firebase nos envia.
-
-Por favor, copie **todo este código abaixo**, vá até o editor do seu arquivo `javascript.js` no GitHub, apague todo o conteúdo antigo e cole este novo código no lugar. Depois, salve ("Commit changes") e aguarde o deploy do Netlify para testarmos.
-
------
-
-### Código Corrigido
-
-```javascript
 // Firebase SDKs imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -96,10 +85,6 @@ const prompts = [
 
 /**
  * Shows a custom modal for alerts or confirmations.
- * @param {string} title - The title of the modal.
- * @param {string} message - The message to display.
- * @param {boolean} isConfirm - If true, shows a "Cancel" button and returns a Promise.
- * @returns {Promise<boolean>|void} - Promise resolves to true if confirmed, false if cancelled. Returns void for alert.
  */
 function showCustomModal(title, message, isConfirm = false) {
     modalTitle.textContent = title;
@@ -146,9 +131,6 @@ function hideLoading() {
 async function initializeFirebase() {
     showLoading();
     try {
-        // Get app ID from global variable, fallback for local testing
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cerebro-hacker-app-id';
-        // Parse Firebase config from global variable
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
         if (Object.keys(firebaseConfig).length === 0) {
@@ -162,21 +144,12 @@ async function initializeFirebase() {
         db = getFirestore(app);
         auth = getAuth(app);
 
-        // Authenticate user
-        if (typeof __initial_auth_token !== 'undefined') {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-            await signInAnonymously(auth);
-        }
-
-        // Listen for auth state changes
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
-                displayUserId.textContent = userId;
+                displayUserId.textContent = `ID: ${userId}`; // Update UI with the actual ID
                 console.log("Firebase user authenticated:", userId);
 
-                // Load user name if exists, otherwise prompt
                 await loadUserName();
                 if (userName) {
                     showPlanner();
@@ -185,16 +158,7 @@ async function initializeFirebase() {
                     plannerDashboard.classList.add('hidden');
                 }
             } else {
-                // If no user is signed in (e.g., initial load without token), sign in anonymously.
-                // This ensures we always have a userId for Firestore operations.
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
-                userId = auth.currentUser?.uid || crypto.randomUUID(); // Fallback if anonymous fails
-                displayUserId.textContent = userId + " (Anônimo)";
-                console.log("Firebase user signed out or anonymous.");
-                welcomeScreen.classList.remove('hidden');
-                plannerDashboard.classList.add('hidden');
+                await signInAnonymously(auth);
             }
             hideLoading();
         });
@@ -208,18 +172,15 @@ async function initializeFirebase() {
 
 /**
  * Gets the Firestore collection reference for user's planner data.
- * @returns {import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").CollectionReference}
+ * --- CORRIGIDO ---
  */
 function getPlannerCollectionRef() {
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cerebro-hacker-app-id';
-    // Path: /artifacts/{appId}/users/{userId}/plannerData
-    return collection(db, `artifacts/${appId}/users/${userId}/plannerData`);
+    // Path: users/{userId}/plannerData
+    return collection(db, `users/${userId}/plannerData`);
 }
 
 /**
  * Gets the Firestore document reference for a specific day's data.
- * @param {number} day
- * @returns {import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").DocumentReference}
  */
 function getDayDocRef(day) {
     return doc(getPlannerCollectionRef(), `day_${day}`);
@@ -227,20 +188,19 @@ function getDayDocRef(day) {
 
 /**
  * Loads user name from Firestore.
+ * --- CORRIGIDO ---
  */
 async function loadUserName() {
-    // Ensure Firebase and userId are ready before attempting to load
     if (!db || !userId || userId === 'anonymous') {
         console.warn("Firestore not ready or userId not set. Cannot load user name.");
         return;
     }
     try {
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cerebro-hacker-app-id';
-        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/userName`);
+        const userDocRef = doc(db, 'users', userId); // Correct, simpler path
         const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
+        if (userDocSnap.exists() && userDocSnap.data().name) {
             userName = userDocSnap.data().name;
-            userNameInput.value = userName; // Set input value if name exists
+            userNameInput.value = userName;
         }
     } catch (error) {
         console.error("Erro ao carregar nome do usuário:", error);
@@ -249,23 +209,23 @@ async function loadUserName() {
 
 /**
  * Saves user name to Firestore.
- * @param {string} name
+ * --- CORRIGIDO ---
  */
 async function saveUserName(name) {
-    if (!userId || !name || !db) { // Ensure userId, name, and db are valid
+    if (!userId || !name || !db) {
         console.warn("userId ou nome não definido, ou Firestore não inicializado. Não é possível salvar nome.");
         return;
     }
     try {
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-cerebro-hacker-app-id';
-        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/userName`);
-        await setDoc(userDocRef, { name: name }, { merge: true });
+        const userDocRef = doc(db, 'users', userId); // Correct, simpler path
+        await setDoc(userDocRef, { name: name }, { merge: true }); // Use merge to avoid overwriting other data
         console.log("Nome do usuário salvo com sucesso:", name);
     } catch (error) {
         console.error("Erro ao salvar nome do usuário:", error);
         showCustomModal('Erro ao Salvar', 'Não foi possível salvar seu nome.');
     }
 }
+
 
 /**
  * Shows the planner dashboard and hides the welcome screen.
@@ -486,4 +446,3 @@ window.onload = () => {
     initializeFirebase();
     setupRangeInputListeners(); // Set up range listeners once
 };
-```
