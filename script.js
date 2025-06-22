@@ -131,7 +131,7 @@ function hideLoading() {
 async function initializeFirebase() {
     showLoading();
     try {
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const firebaseConfig = window.__firebase_config_obj || {};
 
         if (Object.keys(firebaseConfig).length === 0) {
             showCustomModal('Erro de Configuração', 'Configuração do Firebase não encontrada. O aplicativo pode não funcionar corretamente. Por favor, recarregue a página.');
