@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cérebro Hacker Planner - 21 Dias</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS configuration for custom font family
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <!-- Custom Modal for Alerts/Confirmations -->
+    <div id="customModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full border-t-4 border-blue-500">
+            <h3 id="modalTitle" class="text-xl font-semibold mb-4 text-gray-800"></h3>
+            <p id="modalMessage" class="mb-6 text-gray-700"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modalConfirmBtn" class="px-5 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-200 shadow-md">OK</button>
+                <button id="modalCancelBtn" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-200 shadow-md hidden">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden fixed inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="bg-white rounded-xl shadow-lg p-8 sm:p-10 lg:p-12 max-w-md w-full text-center flex flex-col items-center justify-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-6 leading-tight">
+            Bem-vindo(a) ao<br><span class="text-blue-600">Cérebro Hacker Planner!</span> 🎉
+        </h1>
+        <p class="text-lg text-gray-600 mb-8 max-w-xs sm:max-w-md mx-auto">
+            Sua jornada de 21 dias para uma mente otimizada começa aqui.
+        </p>
+        <div class="w-full mb-6">
+            <label for="userNameInput" class="block text-gray-700 text-sm font-semibold mb-2 text-left">Seu Nome:</label>
+            <input type="text" id="userNameInput" placeholder="Digite seu nome" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800">
+        </div>
+        <button id="startButton" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg transform hover:scale-105 active:scale-95">
+            Começar Minha Jornada de 21 Dias
+        </button>
+        <p class="text-sm text-gray-500 mt-4">ID do Usuário: <span id="displayUserId" class="font-mono text-gray-700 text-xs break-all">Carregando...</span></p>
+    </div>
+
+    <!-- Planner Dashboard (Hidden initially) -->
+    <div id="plannerDashboard" class="hidden bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 max-w-4xl w-full flex flex-col">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-0">
+                Dia <span id="currentDayDisplay">1</span> do Protocolo
+            </h2>
+            <div class="text-gray-600 text-lg">
+                <span id="currentDateDisplay">DD/MM/AAAA</span>
+            </div>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-6">
+            <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+            <p class="text-sm text-gray-600 text-right mt-1"><span id="progressText">0%</span> Concluído</p>
+        </div>
+
+        <!-- Planner Card: Checklist dos 6 Pilares -->
+        <div class="planner-card p-6 border border-gray-200 rounded-lg mb-8">
+            <h3 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                <span class="mr-2 text-blue-500">📋</span> Checklist dos 6 Pilares
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-lg">
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="nutricaoCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">🍎 Nutrição Neuroativa</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="suplementacaoCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">💊 Suplementação Inteligente</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="movimentoCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">🏃 Movimento Neuroprotetor</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="sonoCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">🌙 Sono Reparador</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="mindfulnessCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">🧘 Mindfulness/Meditação</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="hidratacaoCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500">
+                    <span class="text-gray-800 font-medium">💧 Hidratação Adequada</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Planner Card: Escalas de Avaliação -->
+        <div class="planner-card p-6 border border-gray-200 rounded-lg mb-8">
+            <h3 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                <span class="mr-2 text-blue-500">📊</span> Escalas de Avaliação
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-gray-700">
+                <div>
+                    <label for="focoRating" class="block text-gray-800 text-lg font-medium mb-2">Foco: <span id="focoValue">0</span>/10</label>
+                    <input type="range" id="focoRating" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-500">
+                </div>
+                <div>
+                    <label for="energiaRating" class="block text-gray-800 text-lg font-medium mb-2">Energia: <span id="energiaValue">0</span>/10</label>
+                    <input type="range" id="energiaRating" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-500">
+                </div>
+                <div>
+                    <label for="clarezaRating" class="block text-gray-800 text-lg font-medium mb-2">Clareza Mental: <span id="clarezaValue">0</span>/10</label>
+                    <input type="range" id="clarezaRating" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg accent-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Planner Card: Reflexão do Dia -->
+        <div class="planner-card p-6 border border-gray-200 rounded-lg mb-8">
+            <h3 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                <span class="mr-2 text-blue-500">📝</span> Reflexão do Dia
+            </h3>
+            <p class="text-gray-800 font-bold mb-3">Prompt:</p>
+            <p id="dailyPrompt" class="text-gray-700 italic mb-6 leading-relaxed">
+                [Prompt específico do dia será carregado aqui.]
+            </p>
+            <label for="reflectionTextarea" class="block text-gray-800 font-bold mb-2">Minha reflexão:</label>
+            <textarea id="reflectionTextarea" rows="6" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder-gray-400 resize-y"></textarea>
+        </div>
+
+        <!-- Planner Card: Observações -->
+        <div class="planner-card p-6 border border-gray-200 rounded-lg mb-8">
+            <h3 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                <span class="mr-2 text-blue-500">📈</span> Observações
+            </h3>
+            <div class="space-y-6">
+                <div>
+                    <label for="howIFeltTextarea" class="block text-gray-800 font-bold mb-2">Como me senti hoje?</label>
+                    <textarea id="howIFeltTextarea" rows="3" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder-gray-400 resize-y"></textarea>
+                </div>
+                <div>
+                    <label for="whatWorkedTextarea" class="block text-gray-800 font-bold mb-2">O que funcionou bem?</label>
+                    <textarea id="whatWorkedTextarea" rows="3" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder-gray-400 resize-y"></textarea>
+                </div>
+                <div>
+                    <label for="whatToImproveTextarea" class="block text-gray-800 font-bold mb-2">O que posso melhorar amanhã?</label>
+                    <textarea id="whatToImproveTextarea" rows="3" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder-gray-400 resize-y"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="no-print flex justify-between mt-6">
+            <button id="prevDayButton" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-full font-semibold hover:bg-gray-400 transition-all duration-300 shadow-md transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                Dia Anterior
+            </button>
+            <button id="nextDayButton" class="px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-300 shadow-md transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                Próximo Dia
+            </button>
+        </div>
+
+        <!-- Print Button -->
+        <div class="no-print flex justify-center mt-8">
+            <button id="printButton" class="px-8 py-4 bg-purple-600 text-white rounded-full font-bold text-lg hover:bg-purple-700 transition-all duration-300 shadow-lg transform hover:scale-105 active:scale-95 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v2m7 0h.01"></path></svg>
+                Imprimir Planner
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs and custom script -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
