@@ -1,3 +1,14 @@
+Com certeza. Aqui está o seu código `javascript.js` completo com a correção que fizemos.
+
+A única alteração foi na função `initializeFirebase`, dentro do bloco `catch (error)`, para que o pop-up de erro mostre a mensagem detalhada que o Firebase nos envia.
+
+Por favor, copie **todo este código abaixo**, vá até o editor do seu arquivo `javascript.js` no GitHub, apague todo o conteúdo antigo e cole este novo código no lugar. Depois, salve ("Commit changes") e aguarde o deploy do Netlify para testarmos.
+
+-----
+
+### Código Corrigido
+
+```javascript
 // Firebase SDKs imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -177,7 +188,7 @@ async function initializeFirebase() {
                 // If no user is signed in (e.g., initial load without token), sign in anonymously.
                 // This ensures we always have a userId for Firestore operations.
                 if (!auth.currentUser) {
-                     await signInAnonymously(auth);
+                    await signInAnonymously(auth);
                 }
                 userId = auth.currentUser?.uid || crypto.randomUUID(); // Fallback if anonymous fails
                 displayUserId.textContent = userId + " (Anônimo)";
@@ -190,7 +201,7 @@ async function initializeFirebase() {
 
     } catch (error) {
         console.error("Erro ao inicializar Firebase ou autenticar:", error);
-        showCustomModal('Erro de Inicialização', 'Não foi possível conectar ao serviço de dados. Por favor, tente novamente.');
+        showCustomModal('Erro de Inicialização', `Não foi possível conectar. Erro: ${error.message}`);
         hideLoading();
     }
 }
@@ -475,3 +486,4 @@ window.onload = () => {
     initializeFirebase();
     setupRangeInputListeners(); // Set up range listeners once
 };
+```
